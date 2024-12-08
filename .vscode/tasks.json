@@ -23,7 +23,7 @@
       "group": "build",
       "problemMatcher": "$esbuild-watch",
       "isBackground": true,
-      "label": "pnpm: watch:esbuild",
+      "label": "npm: watch:esbuild",
       "presentation": {
         "group": "watch",
         "reveal": "never"
@@ -35,7 +35,7 @@
       "group": "build",
       "problemMatcher": "$tsc-watch",
       "isBackground": true,
-      "label": "pnpm: watch:tsc",
+      "label": "npm: watch:tsc",
       "presentation": {
         "group": "watch",
         "reveal": "never"
