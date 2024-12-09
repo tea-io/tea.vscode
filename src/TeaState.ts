@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import {Disposable} from "vscode";
+import {VirtualCursorsState} from "./VirtualCursors";
 
 export class TeaStateInstance {
     static #instance: TeaState;
@@ -17,8 +18,12 @@ export class TeaStateInstance {
 }
 
 class TeaState {
+    #virtualCursorsState: VirtualCursorsState;
+
     constructor(context: vscode.ExtensionContext) {
         context.subscriptions.push(TeaState.registerInitialConnectionCommand());
+
+        this.#virtualCursorsState = new VirtualCursorsState(context);
     }
 
     private static registerInitialConnectionCommand(): Disposable {
@@ -50,9 +55,5 @@ class TeaState {
                 }
             });
         });
-    }
-
-    public testGettingInstance() {
-        console.log("Instance initialized correctly");
     }
 }
