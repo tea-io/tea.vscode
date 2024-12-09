@@ -25,7 +25,7 @@ class TeaState {
         return vscode.commands.registerCommand("tea-vscode.connect", async () => {
             const url = await vscode.window.showInputBox({
                 title: "Enter the URL of the Tea file system",
-                value: "127.0.0.1:8080"
+                value: "127.0.0.1:5211"
             });
             if (!url) {
                 vscode.window.showInformationMessage("Invalid URL");
