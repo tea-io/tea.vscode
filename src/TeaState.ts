@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import {Disposable} from "vscode";
+import {handleFileClosed, handleFileOpened} from "./activations";
 
 export class TeaStateInstance {
     static #instance: TeaState;
@@ -19,6 +20,7 @@ export class TeaStateInstance {
 class TeaState {
     constructor(context: vscode.ExtensionContext) {
         context.subscriptions.push(TeaState.registerInitialConnectionCommand());
+        context.subscriptions.push(...TeaState.registerOnDocumentOpenClose());
     }
 
     private static registerInitialConnectionCommand(): Disposable {
@@ -52,7 +54,9 @@ class TeaState {
         });
     }
 
-    public testGettingInstance() {
-        console.log("Instance initialized correctly");
+    private static registerOnDocumentOpenClose() {
+        const openDisposable = vscode.workspace.onDidOpenTextDocument(handleFileOpened);
+        const closeDisposable = vscode.workspace.onDidCloseTextDocument(handleFileClosed);
+        return [openDisposable, closeDisposable];
     }
 }
