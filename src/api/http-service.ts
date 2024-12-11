@@ -3,6 +3,11 @@ import * as net from "net";
 
 let id = 0;
 
+export interface IMessage {
+    type: number;
+    data: object
+}
+
 class RawSocketClient {
     // @ts-ignore-next-line
     #socket: net.Socket;
@@ -33,22 +38,13 @@ export class HttpService {
         this.#socket.connect(endpoint, port);
     }
 
-    public makeTestRequest() {
-        try {
-            // TODO: Implement the actual request
-            this.makeRequest({path: "tgest data"});
-        } catch (e) {
-            console.error("Failed to send request", e);
-        }
-    }
-
-    private makeRequest<T>(data: T) {
-        const payloadBuffer = new TextEncoder().encode(JSON.stringify(data));
+    public makeRequest(msg: IMessage) {
+        const payloadBuffer = new TextEncoder().encode(JSON.stringify(msg.data));
 
         const headerBuffer = Buffer.alloc(12);
         headerBuffer.writeInt32BE(payloadBuffer.byteLength, 0); // size
         headerBuffer.writeInt32BE(id++, 4); // id
-        headerBuffer.writeInt32BE(67, 8); // type
+        headerBuffer.writeInt32BE(msg.type, 8); // type
 
         const finalPayload = Buffer.concat([headerBuffer, payloadBuffer]);
 

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import {Disposable} from "vscode";
 import {HttpService} from "./api/http-service";
-import {handleFileClosed, handleFileOpened} from "./activations";
+import {handleAfterFileSaved, handleBeforeFileSaved, handleFileClosed, handleFileOpened} from "./activations";
 
 export class TeaStateInstance {
     static #instance: TeaState;
@@ -25,6 +25,7 @@ class TeaState {
         this.#httpClient = new HttpService("0.0.0.0", 5212);
 
         context.subscriptions.push(TeaState.registerInitialConnectionCommand());
+        context.subscriptions.push(...TeaState.registerOnFileSave(context, this.#httpClient));
         context.subscriptions.push(...TeaState.registerOnFileOpenClose(context, this.#httpClient));
     }
 
@@ -57,6 +58,13 @@ class TeaState {
                 }
             });
         });
+    }
+
+    private static registerOnFileSave(context: vscode.ExtensionContext, httpClient: HttpService) {
+        const saveDisposable = vscode.workspace.onWillSaveTextDocument((event) => handleBeforeFileSaved(event, httpClient));
+        const afterSaveDisposable = vscode.workspace.onDidSaveTextDocument((doc) => handleAfterFileSaved(doc, httpClient));
+
+        return [saveDisposable, afterSaveDisposable];
     }
 
     private static registerOnFileOpenClose(context: vscode.ExtensionContext, httpClient: HttpService) {
