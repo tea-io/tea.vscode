@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import {Disposable} from "vscode";
+import {HttpService} from "./api/http-service";
+import {handleFileClosed, handleFileOpened} from "./activations";
 
 export class TeaStateInstance {
     static #instance: TeaState;
@@ -17,8 +19,13 @@ export class TeaStateInstance {
 }
 
 class TeaState {
+    readonly #httpClient: HttpService;
+
     constructor(context: vscode.ExtensionContext) {
+        this.#httpClient = new HttpService("0.0.0.0", 5212);
+
         context.subscriptions.push(TeaState.registerInitialConnectionCommand());
+        context.subscriptions.push(...TeaState.registerOnFileOpenClose(context, this.#httpClient));
     }
 
     private static registerInitialConnectionCommand(): Disposable {
@@ -52,7 +59,10 @@ class TeaState {
         });
     }
 
-    public testGettingInstance() {
-        console.log("Instance initialized correctly");
+    private static registerOnFileOpenClose(context: vscode.ExtensionContext, httpClient: HttpService) {
+        const openDisposable = vscode.workspace.onDidOpenTextDocument((doc) => handleFileOpened(doc, httpClient));
+        const closeDisposable = vscode.workspace.onDidCloseTextDocument((doc) => handleFileClosed(doc, httpClient));
+
+        return [openDisposable, closeDisposable];
     }
 }
