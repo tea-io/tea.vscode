@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import {Disposable} from "vscode";
+import {HttpService} from "./api/http-service";
+import {MessageTransports} from "vscode-languageclient/node";
 
 export class TeaStateInstance {
     static #instance: TeaState;
@@ -17,8 +19,16 @@ export class TeaStateInstance {
 }
 
 class TeaState {
+    readonly #httpClient: HttpService;
+
     constructor(context: vscode.ExtensionContext) {
+        this.#httpClient = new HttpService("0.0.0.0", 5211);
+
         context.subscriptions.push(TeaState.registerInitialConnectionCommand());
+    }
+
+    public getHttpClientTransformer(): MessageTransports {
+        return this.#httpClient.createTransport();
     }
 
     private static registerInitialConnectionCommand(): Disposable {
@@ -59,9 +69,5 @@ class TeaState {
                 }
             });
         });
-    }
-
-    public testGettingInstance() {
-        console.log("Instance initialized correctly");
     }
 }
