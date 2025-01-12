@@ -24,13 +24,22 @@ class TeaState {
     private static registerInitialConnectionCommand(): Disposable {
         return vscode.commands.registerCommand("tea-vscode.connect", async () => {
             const url = await vscode.window.showInputBox({
-                title: "Enter the URL of the Tea file system",
+                title: "Enter the address of the Tea filesystem",
                 value: "127.0.0.1:5211"
             });
             if (!url) {
                 vscode.window.showInformationMessage("Invalid URL");
                 return;
             }
+
+            const language = await vscode.window.showInputBox({
+                title: "Enter the language you want to use",
+            });
+            if (!language) {
+                vscode.window.showInformationMessage("Invalid language");
+                return;
+            }
+
             vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: "Connecting to Tea file system",
