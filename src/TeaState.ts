@@ -27,8 +27,8 @@ class TeaState {
         context.subscriptions.push(TeaState.registerInitialConnectionCommand());
     }
 
-    public getHttpClientTransformer(): MessageTransports {
-        return this.#httpClient.createTransport();
+    public getHttpClientTransformer(language: string): MessageTransports {
+        return this.#httpClient.createTransport(language);
     }
 
     private static registerInitialConnectionCommand(): Disposable {

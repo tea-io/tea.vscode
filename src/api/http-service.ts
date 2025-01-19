@@ -6,6 +6,12 @@ import {Disposable} from "vscode";
 
 let id = 0;
 
+const languageNameToId: {[index: string]: number} = {
+    "c": 10,
+    "cpp": 11,
+    "latex": 300
+};
+
 export class HttpService {
     readonly #socket: net.Socket;
 
@@ -14,12 +20,12 @@ export class HttpService {
         this.#socket.connect(port, endpoint);
     }
 
-    private static wrapWithHeader(msg: string): Uint8Array<ArrayBufferLike> {
+    private static wrapWithHeader(msg: string, languageName: string): Uint8Array<ArrayBufferLike> {
         const payloadBuffer = new TextEncoder().encode(msg);
         const headerBuffer = Buffer.alloc(12);
         headerBuffer.writeInt32BE(payloadBuffer.byteLength, 0); // size
         headerBuffer.writeInt32BE(id++, 4); // id
-        headerBuffer.writeInt32BE(0, 8); // type
+        headerBuffer.writeInt32BE(languageNameToId[languageName], 8); // language id
 
         return Buffer.concat([headerBuffer, payloadBuffer]);
     }
@@ -29,7 +35,7 @@ export class HttpService {
         return buffer.toString('utf-8', 12, 12 + size);
     }
 
-    public createTransport(): MessageTransports {
+    public createTransport(language: string): MessageTransports {
         const socket = this.#socket;
         return {
             reader: {
@@ -61,7 +67,7 @@ export class HttpService {
             },
             writer: {
                 write: msg => {
-                    const modifiedMsg = HttpService.wrapWithHeader(JSON.stringify(msg));
+                    const modifiedMsg = HttpService.wrapWithHeader(JSON.stringify(msg), language);
                     return new Promise((resolve, reject) => {
                         socket.write(modifiedMsg, error => {
                             if (error) {

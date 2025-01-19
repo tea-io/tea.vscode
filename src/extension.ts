@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     };
 
-    const transformer = instance.getHttpClientTransformer();
+    const transformer = instance.getHttpClientTransformer("cpp");
 
     const serverOptions: ServerOptions = () => {
         return new Promise((resolve) => resolve(transformer));
