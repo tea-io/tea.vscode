@@ -1,7 +1,13 @@
 import * as vscode from "vscode";
 import {Disposable} from "vscode";
 import {HttpService} from "./api/http-service";
-import {MessageTransports} from "vscode-languageclient/node";
+import {
+    DocumentFilter,
+    LanguageClient,
+    LanguageClientOptions,
+    MessageTransports,
+    ServerOptions
+} from "vscode-languageclient/node";
 
 export class TeaStateInstance {
     static #instance: TeaState;
@@ -19,16 +25,8 @@ export class TeaStateInstance {
 }
 
 class TeaState {
-    readonly #httpClient: HttpService;
-
     constructor(context: vscode.ExtensionContext) {
-        this.#httpClient = new HttpService("0.0.0.0", 5211);
-
         context.subscriptions.push(TeaState.registerInitialConnectionCommand());
-    }
-
-    public getHttpClientTransformer(language: string): MessageTransports {
-        return this.#httpClient.createTransport(language);
     }
 
     private static registerInitialConnectionCommand(): Disposable {
@@ -55,11 +53,34 @@ class TeaState {
                 title: "Connecting to Tea file system",
                 cancellable: false
             }, async () => {
-                // TODO: Implement connection logic
                 const p = new Promise<boolean>(resolve => {
-                    setTimeout(() => {
-                        return resolve(Math.random() > 0.5);
-                    }, 1500);
+                    const instance = TeaStateInstance.getInstance();
+                    const clientOptions: LanguageClientOptions = {
+                        documentSelector: [{scheme: 'file', language: language} as DocumentFilter],
+                        synchronize: {
+                            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.*')
+                        }
+                    };
+
+                    const transformer = instance.getHttpClientTransformer(url, language);
+
+                    const serverOptions: ServerOptions = () => {
+                        return new Promise((resolve) => resolve(transformer));
+                    };
+
+                    const client = new LanguageClient(
+                        `tea-${language}-lsp-proxy`,
+                        `Tea ${language} LSP Proxy`,
+                        serverOptions,
+                        clientOptions,
+                    );
+
+                    client.start()
+                        .then(() => {
+                            console.log("Client started");
+                            resolve(true);
+                        })
+                        .catch(console.error);
                 });
 
                 if (await p) {
@@ -69,5 +90,11 @@ class TeaState {
                 }
             });
         });
+    }
+
+    public getHttpClientTransformer(address: string, language: string): MessageTransports {
+        const [host, port] = address.split(":");
+        const httpClient = new HttpService(host, parseInt(port));
+        return httpClient.createTransport(language);
     }
 }

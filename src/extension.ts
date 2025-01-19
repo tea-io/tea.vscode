@@ -2,7 +2,6 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import {TeaStateInstance} from "./TeaState";
-import {DocumentFilter, LanguageClient, LanguageClientOptions, ServerOptions} from "vscode-languageclient/node";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -12,31 +11,6 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "tea-vscode" is now active!');
     TeaStateInstance.initialize(context);
-
-    const instance = TeaStateInstance.getInstance();
-    const clientOptions: LanguageClientOptions = {
-        documentSelector: [{scheme: 'file', language: 'cpp'} as DocumentFilter],
-        synchronize: {
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.*')
-        }
-    };
-
-    const transformer = instance.getHttpClientTransformer("cpp");
-
-    const serverOptions: ServerOptions = () => {
-        return new Promise((resolve) => resolve(transformer));
-    };
-
-    const client = new LanguageClient(
-        `tea-cpp-lsp-proxy`,
-        `Tea C++ LSP Proxy`,
-        serverOptions,
-        clientOptions,
-    );
-
-    client.start()
-        .then(() => console.log("Client started"))
-        .catch(console.error);
 }
 
 // This method is called when your extension is deactivated
